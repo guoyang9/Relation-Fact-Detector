@@ -6,7 +6,7 @@ from nltk.tokenize import TweetTokenizer
 def batch_accuracy(predicted, true):
 	""" Compute the accuracies for a batch of predictions and truths. """
 	_, predicted_index = predicted.max(dim=1)  
-	return predicted_index, predicted_index.eq(true).float()
+	return predicted_index.eq(true).float()
 
 
 def recall(gt_sub, gt_rel, gt_obj, top_sub, top_rel, top_obj):
@@ -36,6 +36,26 @@ def process_questions(question):
 	tnkzr = TweetTokenizer(preserve_case=False)
 	return tnkzr.tokenize(question)
 
+
+# def path_for(train=False, val=False, test=False, test_split, version=config.version):
+# 	assert train + val + test == 1	
+# 	if train:
+# 		split = 'train2014'
+# 	elif val:
+# 		split = 'val2014'
+# 	else:
+# 		split = test_split
+
+# 	fmt = '{0}_{1}_{2}_questions.json'
+# 	if version == 'v2':
+# 		fmt = 'v2_' + fmt
+# 	s = fmt.format(config.task, config.dataset, split)
+# 	return os.path.join(qa_path, s)
+
+
+def tokenize_text(text):
+	tknzr = TweetTokenizer(preserve_case=False)
+	return tknzr.tokenize(text)
 
 class Tracker:
 	""" Keep track of results over time, while having access to monitors to display information about them. """

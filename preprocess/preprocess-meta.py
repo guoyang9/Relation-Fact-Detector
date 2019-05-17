@@ -7,7 +7,6 @@ from collections import Counter
 sys.path.append(os.getcwd())
 
 import utils.utils as utils
-import utils.data as data
 import utils.config as config
 
 
@@ -38,11 +37,9 @@ def load_json():
 
 def question_prepare(questions, start=0):
 	""" Question vocab construction. """
-	questions = list(map(utils.tokenize_text, questions))
+	questions = [utils.process_questions(q) for q in questions]
 	all_tokens = set(itertools.chain.from_iterable(questions))
-	
-	vocab = {t: i for i, t in enumerate(all_tokens, start=0)} # leave 0 for <UNK>
-
+	vocab = {t: i for i, t in enumerate(all_tokens, start=1)} # leave 0 for <UNK>
 	word_ids = [[vocab[t] for t in q] for q in questions]
 	return	questions, word_ids, vocab
 
@@ -54,7 +51,7 @@ def filter_glove(question_vocab):
 	"""
 	glove_file = os.path.join(config.glove_path, 'glove.6B.300d.txt')
 	glove_weights = {}
-	glove_weights_filtered = bcolz.carray(np.zeros(1))
+	glove_weights_filtered = bcolz.carray(np.zeros(300))
 
 	with open(glove_file, 'r') as g:
 		for line in g:
@@ -69,7 +66,7 @@ def filter_glove(question_vocab):
 												word, np.zeros(300,)))
 
 	embeddings = bcolz.carray(
-		glove_weights_filtered[1:].reshape(len(question_vocab), 300),
+		glove_weights_filtered[:].reshape(len(question_vocab)+1, 300),
 		rootdir=config.glove_path_filtered,
 		mode='w')
 	embeddings.flush()
@@ -80,7 +77,6 @@ def most_frequent(sub_topk, rel_topk, obj_topk,
 	""" Filtering the topk relation elements and replace less frequent 
 		element with '<UNK>' (i.e., 0). 
 	"""
-
 	sub_counter = Counter(relation_subs).most_common(sub_topk)
 	rel_counter = Counter(relation_rels).most_common(rel_topk)
 	obj_counter = Counter(relation_objs).most_common(obj_topk)
@@ -127,14 +123,12 @@ def merge_data(relation_subs, relation_rels, relation_objs):
 
 
 def main():
-	(image_ids, question_ids, questions_rvqa, 
+	(image_ids, question_ids, questions, 
 	relations, relation_ids,
 	relation_subs, relation_rels, relation_objs) = load_json()
 	
-	questions = questions_rvqa + questions_train + questions_val + questions_test + v2_questions_train + v2_questions_val + v2_questions_test
 	questions, word_ids, question_vocab = question_prepare(questions)
 	filter_glove(question_vocab)
-	print(len(question_vocab))
 	
 	if config.merge:
 		relation_subs, relation_rels, relation_objs = merge_data(

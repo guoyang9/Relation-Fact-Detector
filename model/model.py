@@ -125,7 +125,7 @@ class Glove(nn.Module):
 		weights = torch.tensor(weights)
 
 		self.embeddings = nn.Embedding(
-			num_embeddings, embedding_dim) # , padding_idx=0)
+			num_embeddings, embedding_dim, padding_idx=0)
 		self.embeddings.load_state_dict({'weight': weights})
 		if not fine_tune:
 			self.embeddings.weight.requires_grad = False

@@ -3,7 +3,7 @@ import h5py
 import torch
 import torch.utils.data as data
 
-import config as config
+import utils.config as config
 
 
 def get_loader(split, meta_data):
@@ -34,21 +34,17 @@ class FactData(data.Dataset):
 		# choose right split path
 		if split == 'train':
 			if config.train_set == 'train':
-				splits_path = os.path.join(
-						config.raw_data_path, 'vqa_raw_train_0.30.json')
+				file_name = 'vqa_raw_train_0.30.json'
 			elif config.train_set == 'train+val':
-				splits_path = os.path.join(
-						config.raw_data_path, 'vqa_raw_train_val_0.30.json')
+				file_name = 'vqa_raw_train_val_0.30.json'
 			else: # all the index should be used
-				splits_path = os.path.join(
-						config.raw_data_path, 'vqa-rel_map_result_0.30.json')
+				file_name = 'vqa-rel_map_result_0.30.json'
 		if split == 'val':
-			splits_path = os.path.join(
-						config.raw_data_path, 'vqa_raw_val_0.30.json')
+			file_name = 'vqa_raw_val_0.30.json'
 		if split == 'test':
-			splits_path = os.path.join(
-						config.raw_data_path, 'vqa_raw_test_0.30.json')
+			file_name = 'vqa_raw_test_0.30.json'
 
+		splits_path = os.path.join(config.rvqa_data_path, file_name)
 		with open(splits_path, 'r') as fd:
 			splits = json.load(fd)
 		self.question_ids = [i['question_id'] for i in splits]
@@ -70,18 +66,6 @@ class FactData(data.Dataset):
 			if i < config.max_question_len:
 				vec[i] = token
 		return vec, min(len(question), config.max_question_len)
-
-	def _encode_answers(self, answers):
-		""" Turn an answer into a vector """
-		# answer vec will be a vector of answer counts to determine which answers will contribute to the loss.
-		# this should be multiplied with 0.1 * negative log-likelihoods that a model produces and then summed up
-		# to get the loss that is weighted by how many humans gave that answer
-		answer_vec = torch.zeros(len(self.answer_to_index))
-		for answer in answers:
-			index = self.answer_to_index.get(answer)
-			if index is not None:
-				answer_vec[index] += 1
-		return answer_vec
 
 	def _create_vg_id_to_index(self):
 		""" Create a mapping from a VG image id into the 
