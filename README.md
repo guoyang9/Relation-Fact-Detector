@@ -1,5 +1,5 @@
 # relation-vqa
-Re-implementation of the Relation Fact Detector for 'R-VQA: Learning Visual Relation Facts with Semantic Attention for Visual Question Answering'.
+Re-implementation of the Relation Fact Detector for 'R-VQA: Learning Visual Relation Facts with Semantic Attention for Visual Question Answering'. You can also get the ```top k``` most related facts for VQA v1.0 and v2.0 datasets.
 
 The paper was published on SIGKDD 2018 and can be downloaded at this [link](http://www.kdd.org/kdd2018/accepted-papers/view/r-vqa-learning-visual-relation-facts-with-semantic-attention-for-visual-que).
 
@@ -40,19 +40,28 @@ I guess you may need the RCNN image feature of Visual Genome, no hesitate to ema
 
 ## Runing Details of Relation Fact Detector
 Put all the raw data in the right directory according to config.py.
-
 1. Preprocess image features (Most times can skip this step and ask me for the h5 file).
 ```
-python preprocess/preprocess_images.py 
+python preprocess/preprocess-images.py 
 ```
 1. Preprocess all the metadata. This will result all the needed meta json file and vocab files.
 ```
-python preprocess/preprocess_meta.py
+python preprocess/preprocess-meta.py
 ```
-1. Train the detector.
+1. Train the detector (Notice the train_set in config.py should be 'train').
 ```
 python main.py --gpu=0 --name=rvqa
 ```
-
+1. Test the detector (Notice the train_set in config.py should be 'train+val').
+```
+python main.py --gpu=0 --name=rvqa 
+```
 ## Extracting facts for VQA v1.0 and v2.0 datasets
-
+1. Train the detector from scratch with all the given data (Notice the train_set in config.py should be 'all').
+```
+python main --gpu=0 --name=rvqa
+```
+1. Extract facts.
+```
+python  facts_vqa.py --gpu=0 --name=logs/rvqa
+```

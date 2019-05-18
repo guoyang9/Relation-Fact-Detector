@@ -1,5 +1,5 @@
 # training set 
-train_set = 'train+val'
+train_set = 'all'
 assert train_set in ['train', 'train+val', 'all']
 
 merge = True # merge relations or not
@@ -7,20 +7,24 @@ merge = True # merge relations or not
 # VQA dataset version
 version = 'v1'
 assert version in ['v1', 'v2']
+task = 'OpenEnded'
+dataset = 'mscoco'
 
 # paths
 main_path = '/raid/guoyangyang/vqa/'
 if version == 'v1':
-	qa_path = main_path+'vqa1.0/qa_path/'  # directory containing the question and annotation jsons from vqa v1.0 dataset
+	qa_path = main_path + 'vqa1.0/qa_path/'  # directory containing the question and annotation jsons from vqa v1.0 dataset
 else:
-	qa_path = main_path+'vqa2.0/qa_path/'  # directory containing the question and annotation jsons from vqa v2.0 dataset
-rvqa_data_path = main_path + 'r-vqa/'
-meta_data_path = rvqa_data_path + 'meta_data.json'
-vocab_path = rvqa_data_path + 'vocabs.json'
-bottom_up_path = main_path + 'VG100K'
-image_features_path = main_path + 'visual-genome/VG.h5'
-glove_path = main_path + 'word_embed/glove/'
-glove_path_filtered = rvqa_data_path + 'glove_filter'
+	qa_path = main_path + 'vqa2.0/qa_path/'  # directory containing the question and annotation jsons from vqa v2.0 dataset
+fact_path = qa_path + 'fact_path/'
+
+rvqa_data_path = main_path + 'r-vqa/' # the original r-vqa data
+meta_data_path = rvqa_data_path + 'meta_data.json' # the preprocessed meta-data from r-vqa
+vocab_path = rvqa_data_path + 'vocabs.json' 
+bottom_up_path = main_path + 'VG100K' # Visual Genome dataset
+image_features_path = main_path + 'visual-genome/VG.h5' # the preprocessed Visual Genome feature file
+glove_path = main_path + 'word_embed/glove/' # the pre-trained glove file paths
+glove_path_filtered = rvqa_data_path + 'glove_filter' # processed glove features
 
 # vqa mscoco image features
 rcnn_path = main_path + '/rcnn-data/'

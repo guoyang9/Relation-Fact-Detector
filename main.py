@@ -174,10 +174,6 @@ def main():
 	for i in range(start_epoch, config.epochs):
 		run(net, train_loader, tracker, optimizer, 
 			loss_criterion=loss, train=True, prefix='train', epoch=i)
-		r = run(net, val_loader, tracker, optimizer, 
-			loss_criterion=loss, train=False, prefix='val', epoch=i)
-		print("{} epoch {}: recall@1 is {:.4f}".format(state, i, r[0]), end=", ")
-		print("recall@5 is {:.4f}, recall@10 is {:.4f}".format(r[1], r[2]))
 
 		results = {
 			'epoch': i,
@@ -185,13 +181,20 @@ def main():
 			'model_state': net.state_dict(),
 			'optim_state': optimizer.state_dict(),
 		}
-		if r[2] > recall_10_val_best:
-			recall_10_val_best = r[2]
-			results['recall_10_val_best'] = recall_10_val_best
-			best_epoch = i
-			recall_1_val_best = r[0]
-			recall_5_val_best = r[1]
-			torch.save(results, target_name+'.pth')
+
+		if not config.train_set == 'all':
+			r = run(net, val_loader, tracker, optimizer, 
+				loss_criterion=loss, train=False, prefix='val', epoch=i)
+			print("{} epoch {}: recall@1 is {:.4f}".format(state, i, r[0]), end=", ")
+			print("recall@5 is {:.4f}, recall@10 is {:.4f}".format(r[1], r[2]))
+
+			if r[2] > recall_10_val_best:
+				recall_10_val_best = r[2]
+				results['recall_10_val_best'] = recall_10_val_best
+				best_epoch = i
+				recall_1_val_best = r[0]
+				recall_5_val_best = r[1]
+				torch.save(results, target_name+'.pth')
 	if not config.train_set == 'all':
 		print("The best performance of {} is on epoch {}".format(state, best_epoch), end=": " )
 		print("recall@1 is {:.4f}, recall@5 is {:.4f}, recall@10 is {:.4f}".format(

@@ -8,24 +8,11 @@ import utils.config as config
 import utils.utils as utils
 
 
-def get_loader(train=False, val=False, test=False, test_split=None):
+def get_loader(split=None, test=False, vocabs=None):
 	""" Returns a data loader for the desired split """
-	if train and val:
-		do_val_later = True
-		val = False
-	else:
-		do_val_later = False
-	trainval_path = config.rcnn_trainval_path
-	test_path = config.rcnn_test_path
-	split = VQA(
-		utils.path_for(train=train, val=val, test=test, test_split=test_split),
-		trainval_path if not test else test_path)
-	if do_val_later:
-		val = True
-		train = False
-		split += VQA(
-			utils.path_for(train=train, val=val, test=test, test_split=test_split),
-			trainval_path if not test else test_path)
+	image_path = config.rcnn_test_path if test else config.rcnn_trainval_path
+	split = VQA(vocabs,	utils.path_for(split),	image_path)
+	
 	loader = torch.utils.data.DataLoader(
 		split,
 		batch_size=config.batch_size,
@@ -43,15 +30,14 @@ def collate_fn(batch):
 
 class VQA(data.Dataset):
 	""" VQA dataset, open-ended """
-	def __init__(self, questions_path, image_features_path):
+	def __init__(self, question_vocab, questions_path, image_features_path):
 		super(VQA, self).__init__()
 		with open(questions_path, 'r') as fd:
 			questions_json = json.load(fd)
+		self.question_vocab = question_vocab
 
-		# self._check_integrity(questions_json, answers_json)
+		# q
 		self.question_ids = [q['question_id'] for q in questions_json['questions']]
-		
-		# q and a
 		self.questions = list(prepare_questions(questions_json))
 		self.questions = [self._encode_question(utils.tokenize_text(q)) for q in self.questions]
 
@@ -72,7 +58,7 @@ class VQA(data.Dataset):
 		vec = torch.zeros(config.max_question_len).long()
 		for i, token in enumerate(question):
 			if i < config.max_question_len:
-				index = self.token_to_index[token]
+				index = self.question_vocab.get(token, 0)
 				vec[i] = index
 		return vec, min(len(question), config.max_question_len)
 
@@ -95,13 +81,10 @@ class VQA(data.Dataset):
 		# we return `item` so that the order of (v, q, a) triples can be restored if desired
 		# without shuffling in the dataloader, these will be in the order that they appear in the q and a json's.
 		q, q_len = self.questions[item]
-		return item, v, q, b, q_len
+		return item, v, q, q_len
 
 	def __len__(self):
-		if self.answerable_only:
-			return len(self.answerable)
-		else:
-			return len(self.questions)
+		return len(self.questions)
 
 
 # this is used for normalizing questions
