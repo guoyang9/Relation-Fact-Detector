@@ -12,7 +12,7 @@ def get_loader(split=None, test=False, vocabs=None):
 	""" Returns a data loader for the desired split """
 	image_path = config.rcnn_test_path if test else config.rcnn_trainval_path
 	split = VQA(vocabs,	utils.path_for(split),	image_path)
-	
+
 	loader = torch.utils.data.DataLoader(
 		split,
 		batch_size=config.batch_size,
@@ -34,17 +34,19 @@ class VQA(data.Dataset):
 		super(VQA, self).__init__()
 		with open(questions_path, 'r') as fd:
 			questions_json = json.load(fd)
+			if not config.cp_data:
+				questions_json = questions_json['questions']
 		self.question_vocab = question_vocab
 
 		# q
-		self.question_ids = [q['question_id'] for q in questions_json['questions']]
+		self.question_ids = [q['question_id'] for q in questions_json]
 		self.questions = list(prepare_questions(questions_json))
 		self.questions = [self._encode_question(utils.tokenize_text(q)) for q in self.questions]
 
 		# v
 		self.image_features_path = image_features_path
 		self.coco_id_to_index = self._create_coco_id_to_index()
-		self.coco_ids = [q['image_id'] for q in questions_json['questions']]
+		self.coco_ids = [q['image_id'] for q in questions_json]
 
 	def _create_coco_id_to_index(self):
 		""" Create a mapping from a COCO image id into the corresponding index into the h5 file """
@@ -93,7 +95,7 @@ _special_chars = re.compile('(\'+s)*[^a-z0-9- ]*')
 def prepare_questions(questions, rvqa=False):
 	""" Tokenize and normalize questions from a given question json in the usual VQA format. """
 	if not rvqa:
-		questions = [q['question'] for q in questions['questions']]
+		questions = [q['question'] for q in questions]
 	for question in questions:
 		question = question.lower()[:-1]
 		question = _special_chars.sub('', question)

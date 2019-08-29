@@ -7,13 +7,13 @@ import utils.config as config
 
 def batch_accuracy(predicted, true):
 	""" Compute the accuracies for a batch of predictions and truths. """
-	_, predicted_index = predicted.max(dim=1)  
+	_, predicted_index = predicted.max(dim=1)
 	return predicted_index.eq(true).float()
 
 
 def recall(gt_sub, gt_rel, gt_obj, top_sub, top_rel, top_obj):
 	""" The possibility of a predicted fact is the sum of probabilities
-		of the subject, relation, and object. 
+		of the subject, relation, and object.
 	"""
 	r = []
 	for idx in range(len(gt_sub)):
@@ -39,11 +39,15 @@ def process_questions(question):
 	return tnkzr.tokenize(question)
 
 
-def path_for(split, version=config.version):
-	fmt = '{0}_{1}_{2}_questions.json'
-	if version == 'v2':
-		fmt = 'v2_' + fmt
-	s = fmt.format(config.task, config.dataset, split)
+def path_for(split, cp_data=config.cp_data, version=config.version):
+	if cp_data:
+		fmt = 'vqacp_{0}_{1}_questions.json'
+		s = fmt.format(version, split)		
+	else:
+		fmt = '{0}_{1}_{2}_questions.json'
+		if version == 'v2':
+			fmt = 'v2_' + fmt
+		s = fmt.format(config.task, config.dataset, split)
 	return os.path.join(config.qa_path, s)
 
 
