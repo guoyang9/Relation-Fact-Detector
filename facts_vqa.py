@@ -3,7 +3,6 @@ import argparse
 import json, bcolz
 from tqdm import tqdm
 
-import h5py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -57,19 +56,25 @@ def save_to_disk(val_loader, result, split, vocabs):
 	rel_idx_to_str = {i: s for s, i in vocabs['rels'].items()}
 	obj_idx_to_str = {i: s for s, i in vocabs['objs'].items()}
 
+	subs_r = [[sub_idx_to_str.get(k, 'UNK') for k in i] for i in result[1]]
+	rels_r = [[rel_idx_to_str.get(k, 'UNK') for k in i] for i in result[2]]
+	objs_r = [[obj_idx_to_str.get(k, 'UNK') for k in i] for i in result[3]]
+
 	question_ids = val_loader.dataset.question_ids
-	fact_file = '{}_{}_facts'.format(config.dataset, split)
-	if config.version == 'v2':
+	qids_r = [question_ids[i] for i in result[0]]
+
+	for i in range(len(qids_r)):
+		facts_qid = {'sub': subs_r[i],
+					'rel': rels_r[i], 'obj': objs_r[i]}
+		facts[qids_r[i]] = facts_qid
+
+	fact_file = '{}_{}_facts.json'.format(config.dataset, split)
+	if config.version == 'v2' and not config.cp_data:
 		fact_file = 'v2_' + fact_file
 	fact_file = os.path.join(config.fact_path, fact_file)
 
-	with h5py.File('{}.h5'.format(fact_file), 'w') as f:
-		subs = f.create_dataset('subs', data=result[1])
-		rels = f.create_dataset('rels', data=result[2])
-		objs = f.create_dataset('objs', data=result[3])
-
-		qids = [question_ids[i] for i in result[0]]
-		qids = f.create_dataset('qids', data=qids)
+	with open(fact_file, 'w') as fd:
+		json.dump(facts, fd)
 
 
 def main():
