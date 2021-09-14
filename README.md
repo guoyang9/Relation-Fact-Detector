@@ -36,7 +36,8 @@ The pre-trained Glove features can be found on [glove website](https://nlp.stanf
 
 The mscoco bottom-up-attention image features have been released in this [repo](https://github.com/peteanderson80/bottom-up-attention).
 
-I guess you may need the RCNN image feature of Visual Genome, no hesitate to email me or drop me a message.
+I guess you may need the RCNN image feature of Visual Genome, please find the Baidu Netdisk link below with passcode ```oqi4```.
+```https://pan.baidu.com/s/1J482wd3cdpYC40czyMBvtQ```.
 
 ## Runing Details of Relation Fact Detector
 Put all the raw data in the right directory according to config.py.
